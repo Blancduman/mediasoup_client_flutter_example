@@ -121,33 +121,16 @@ class RoomClientRepository {
   }
 
   void _producerCallback(Producer producer) {
-    if (producer.source == 'mic') {
-      producer.on('transportclose', () {
-        producersBloc.add(ProducerRemove(source: 'mic'));
-      });
-
-      producer.on('trackended', () {
-        disableMic().catchError((data) {});
-      });
-    } else if (producer.source == 'webcam') {
-      producer.on('transportclose', () {
-        producersBloc.add(ProducerRemove(source: 'webcam'));
-      });
-
-      producer.on('trackended', () {
-        disableWebcam().catchError((data) {});
-      });
+    if (producer.source == 'webcam') {
       meBloc.add(MeSetWebcamInProgress(progress: false));
     }
-
+    producer.on('trackended', () {
+      disableMic().catchError((data) {});
+    });
     producersBloc.add(ProducerAdd(producer: producer));
   }
 
   void _consumerCallback(Consumer consumer, [dynamic accept]) {
-    // consumer.on('transportclose', () {
-    //   // consumersBloc.add(ConsumerRemove(consumerId: consumer.id));
-    // });
-
     ScalabilityMode scalabilityMode = ScalabilityMode.parse(
         consumer.rtpParameters.encodings.first.scalabilityMode);
 

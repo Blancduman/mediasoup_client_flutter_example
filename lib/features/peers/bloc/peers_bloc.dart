@@ -122,6 +122,7 @@ class PeersBloc extends Bloc<dynamic, PeersState> {
             final renderer = newPeers[peer.id]?.renderer!;
             newPeers[peer.id] = newPeers[peer.id]!.removeAudioAndRenderer();
             yield PeersState(peers: newPeers);
+            await Future.delayed(Duration(microseconds: 300));
             await renderer?.dispose();
           } else {
             newPeers[peer.id] = newPeers[peer.id]!.removeAudio();
@@ -129,7 +130,7 @@ class PeersBloc extends Bloc<dynamic, PeersState> {
           }
           await consumer?.close();
         } else if (peer.video?.id == event.consumerId) {
-          final consumer = peer.audio;
+          final consumer = peer.video;
           if (peer.audio != null) {
             newPeers[peer.id]!.renderer!.srcObject =
                 newPeers[peer.id]!.audio!.stream;
@@ -154,8 +155,10 @@ class PeersBloc extends Bloc<dynamic, PeersState> {
           final renderer = peer.renderer;
           newPeers[peer.id] = newPeers[peer.id]!.removeVideoAndRenderer();
           yield PeersState(peers: newPeers);
-          await consumer?.close();
-          await renderer?.dispose();
+          consumer
+            ?.close()
+            .then((_) => Future.delayed(Duration(microseconds: 300)))
+            .then((_) async => await renderer?.dispose());
         }
       }
     }
@@ -167,11 +170,9 @@ class PeersBloc extends Bloc<dynamic, PeersState> {
         .firstWhereOrNull((p) => p.consumers.contains(event.consumerId));
 
     if (peer != null) {
-      // newPeers[peer.id] = newPeers[peer.id]!.copyWith(
-      //   audio: peer.audio!.pauseCopy(),
-      // );
-
-      newPeers[peer.id]?.audio?.pause();
+      newPeers[peer.id] = newPeers[peer.id]!.copyWith(
+        audio: peer.audio!.pauseCopy(),
+      );
 
       yield PeersState(peers: newPeers);
     }
