@@ -14,13 +14,14 @@ class PeerAdd extends PeersEvent {
 }
 
 class PeerAddConsumer extends PeersEvent {
-  final Consumer consumer;
+  final Consumer? consumer;
   final String? peerId;
+  final DataConsumer? dataConsumer;
 
-  const PeerAddConsumer({required this.consumer, required this.peerId});
+  const PeerAddConsumer({this.consumer, this.peerId, this.dataConsumer});
 
   @override
-  List<Object?> get props => [consumer, peerId];
+  List<Object?> get props => [consumer, peerId, dataConsumer];
 }
 
 class PeerRemoveConsumer extends PeersEvent {

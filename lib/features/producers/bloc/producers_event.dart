@@ -5,12 +5,13 @@ abstract class ProducersEvent extends Equatable {
 }
 
 class ProducerAdd extends ProducersEvent {
-  final Producer producer;
+  final Producer? producer;
+  final DataProducer? dataProducer;
 
-  const ProducerAdd({required this.producer});
+  const ProducerAdd({this.producer, this.dataProducer});
 
   @override
-  List<Object> get props => throw UnimplementedError();
+  List<Object?> get props => [producer, dataProducer];
 }
 
 class ProducerRemove extends ProducersEvent {

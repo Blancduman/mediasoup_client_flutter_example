@@ -23,11 +23,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  mediasoup_client_flutter: ^0.8.0
+  mediasoup_client_flutter: #^0.8.1
+    path: ../mediasoup-client-flutter
   protoo_client: ^0.3.1
   random_words: ^1.0.2
   random_string: ^2.3.1
-  flutter_webrtc: ^0.8.0
+  flutter_webrtc: ^0.8.5
   flutter_bloc: ^7.0.1
   equatable: ^2.0.3
   expandable_bottom_sheet: ^1.1.1+1

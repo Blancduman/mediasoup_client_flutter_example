@@ -34,6 +34,7 @@ class RoomClientRepository {
   String? audioInputDeviceId;
   String? audioOutputDeviceId;
   String? videoInputDeviceId;
+  Map<String, DataConsumer> _dataConsumers = <String, DataConsumer>{};
 
   RoomClientRepository({
     required this.producersBloc,
@@ -281,6 +282,7 @@ class RoomClientRepository {
         _sendTransport = _mediasoupDevice!.createSendTransportFromMap(
           transportInfo,
           producerCallback: _producerCallback,
+          dataProducerCallback: _dataProducerCallback,
         );
 
         _sendTransport!.on('connect', (Map data) {
@@ -343,6 +345,7 @@ class RoomClientRepository {
         _recvTransport = _mediasoupDevice!.createRecvTransportFromMap(
           transportInfo,
           consumerCallback: _consumerCallback,
+          dataConsumerCallback: _dataConsumerCallback,
         );
 
         _recvTransport!.on(
@@ -380,9 +383,9 @@ class RoomClientRepository {
         enableMic();
         enableWebcam();
 
-        _sendTransport!.on('connectionstatechange', (connectionState) {
-          if (connectionState == 'connected') {
-            // enableChatDataProducer();
+        _sendTransport!.on('connectionstatechange', (data) {
+          if (data['connectionState'] == 'connected') {
+            enableChatDataProducer();
             // enableBotDataProducer();
           }
         });
@@ -393,6 +396,55 @@ class RoomClientRepository {
     }
   }
 
+  _dataProducerCallback(DataProducer producer) {
+    producer.on('trackended', () {
+      disableMic().catchError((data) {});
+    });
+
+    Stream.periodic(Duration(seconds: 1), (computationCount) {
+      print('sending data');
+      producer.send('data hello');
+    },);
+
+    producersBloc.add(ProducerAdd(dataProducer: producer));
+  }
+
+  void enableChatDataProducer() {
+    try {
+      this._sendTransport!.produceData(
+        ordered: false,
+        maxRetransmits: 1,
+        label: 'chat',
+        priority: Priority.Medium,
+        appData: {
+          'info': 'my-chat-DataProducer',
+        },
+      );
+    } catch (e, st) {
+      print('$e, $st');
+    }
+  }
+
+  _dataConsumerCallback(DataConsumer consumer, [dynamic accept]) {
+    consumer.on('message', (data) {
+      print(data);
+    });
+
+    peersBloc.add(PeerAddConsumer(peerId: consumer.peerId ?? '', dataConsumer: consumer));
+
+    accept({});
+  }
+
+
+  // void enableBotDataProducer() {
+  //   try {
+  //
+  //   } catch (e, st) {
+  //     print('$e, $st');
+  //   }
+  // }
+
+  bool test1 = true;
   void join() {
     _webSocket = WebSocket(
       peerId: peerId,
@@ -446,6 +498,43 @@ class RoomClientRepository {
             }
             break;
           }
+        case 'newDataConsumer': {
+          if (!_consume) {
+            reject(403, 'I do not want to consume');
+            break;
+          }
+          if (request['data']['label'] == 'chat' && test1) {
+            try {
+              test1 = false;
+              _recvTransport!.consumeData(
+                id: request['data']['id'],
+                dataProducerId: request['data']['dataProducerId'],
+                sctpStreamParameters: SctpStreamParameters(
+                  streamId: request['data']['sctpStreamParameters']['streamId'],
+                  ordered: request['data']['sctpStreamParameters']['ordered'],
+                  maxRetransmits: request['data']['sctpStreamParameters']['maxRetransmits'],
+                  maxPacketLifeTime: request['data']['sctpStreamParameters']['maxPacketLifeTime'],
+                  protocol: request['data']['sctpStreamParameters']['protocol'],
+                  label: request['data']['sctpStreamParameters']['label'],
+                  priority: Priority.values.firstWhere(
+                          (p) => request['data']['sctpStreamParameters']['priority'] == p.name,
+                      orElse: () => Priority.Medium
+                  ),
+                ),
+                label: request['data']['label'],
+                protocol: request['data']['protocol'],
+                appData: <String, dynamic>{
+                  ...request['data']['appData'],
+                  'peerId': request['data']['peerId'],
+                },
+                peerId: request['data']['peerId'],
+              );
+            } catch (e, st) {
+              throw e;
+            }
+          }
+          break;
+        }
         default:
           break;
       }

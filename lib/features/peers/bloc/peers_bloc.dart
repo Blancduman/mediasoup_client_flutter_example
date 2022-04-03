@@ -75,21 +75,25 @@ class PeersBloc extends Bloc<dynamic, PeersState> {
         // newPeers[event.peerId]!.renderer!.audioOutput = selectedOutputId;
       }
 
-      if (event.consumer.kind == 'video') {
+      if (event.consumer?.kind == 'video') {
         newPeers[event.peerId!] = newPeers[event.peerId]!.copyWith(video: event.consumer);
         newPeers[event.peerId]!.renderer!.srcObject =
             newPeers[event.peerId]!.video!.stream;
       }
 
-      if (event.consumer.kind == 'audio') {
+      if (event.consumer?.kind == 'audio') {
         newPeers[event.peerId!] = newPeers[event.peerId]!.copyWith(audio: event.consumer);
         if (newPeers[event.peerId]!.video == null) {
           newPeers[event.peerId]!.renderer!.srcObject =
               newPeers[event.peerId]!.audio!.stream;
         }
       }
+
+      if (event.consumer?.kind == 'data') {
+        newPeers[event.peerId!] = newPeers[event.peerId]!.copyWith(dataConsumer: event.dataConsumer);
+      }
     } else {
-      if (event.consumer.kind == 'video') {
+      if (event.consumer?.kind == 'video') {
         newPeers[event.peerId!] = newPeers[event.peerId]!.copyWith(
           renderer: RTCVideoRenderer(),
           video: event.consumer,
@@ -98,10 +102,12 @@ class PeersBloc extends Bloc<dynamic, PeersState> {
         // newPeers[event.peerId]!.renderer!.audioOutput = selectedOutputId;
         newPeers[event.peerId]!.renderer!.srcObject =
             newPeers[event.peerId]!.video!.stream;
-      } else {
+      } else if (event.consumer?.kind == 'audio') {
         newPeers[event.peerId!] = newPeers[event.peerId]!.copyWith(
           audio: event.consumer,
         );
+      } else {
+        newPeers[event.peerId!] = newPeers[event.peerId]!.copyWith(dataConsumer: event.dataConsumer);
       }
     }
 
@@ -143,6 +149,13 @@ class PeersBloc extends Bloc<dynamic, PeersState> {
             await renderer.dispose();
           }
           await consumer?.close();
+        } else if (peer.dataConsumer?.id == event.consumerId) {
+          final consumer = peer.video;
+          if (peer.dataConsumer != null) {
+            newPeers[peer.id] = newPeers[peer.id]!.removeDataConsumer();
+          }
+          yield PeersState(peers: newPeers);
+          await consumer?.close();
         }
       } else {
         if (peer.audio?.id == event.consumerId) {
@@ -159,6 +172,9 @@ class PeersBloc extends Bloc<dynamic, PeersState> {
             ?.close()
             .then((_) => Future.delayed(Duration(microseconds: 300)))
             .then((_) async => await renderer?.dispose());
+        } else if (peer.dataConsumer?.id == event.consumerId) {
+          newPeers[peer.id] = newPeers[peer.id]!.removeDataConsumer();
+          yield PeersState(peers: newPeers);
         }
       }
     }

@@ -26,7 +26,9 @@ class ProducersBloc extends Bloc<ProducersEvent, ProducersState> {
   }
 
   Stream<ProducersState> _mapProducerAddToState(ProducerAdd event) async* {
-    switch (event.producer.source) {
+    if (event.dataProducer != null) {
+      yield ProducersState.copy(state, chatDataProducer: event.dataProducer);
+    } else switch (event.producer!.source) {
       case 'mic': {
         yield ProducersState.copy(state, mic: event.producer);
         break;
