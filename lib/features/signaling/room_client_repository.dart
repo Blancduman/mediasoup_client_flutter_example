@@ -401,10 +401,10 @@ class RoomClientRepository {
       disableMic().catchError((data) {});
     });
 
-    Stream.periodic(Duration(seconds: 1), (computationCount) {
+    Timer.periodic(Duration(seconds: 1), (computationCount) {
       print('sending data');
       producer.send('data hello');
-    },);
+    });
 
     producersBloc.add(ProducerAdd(dataProducer: producer));
   }
