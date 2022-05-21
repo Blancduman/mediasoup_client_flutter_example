@@ -503,7 +503,7 @@ class RoomClientRepository {
             reject(403, 'I do not want to consume');
             break;
           }
-          if (request['data']['label'] == 'chat' && test1) {
+          if (request['data']['label'] == 'chat') {
             try {
               test1 = false;
               _recvTransport!.consumeData(
@@ -514,8 +514,8 @@ class RoomClientRepository {
                   ordered: request['data']['sctpStreamParameters']['ordered'],
                   maxRetransmits: request['data']['sctpStreamParameters']['maxRetransmits'],
                   maxPacketLifeTime: request['data']['sctpStreamParameters']['maxPacketLifeTime'],
-                  protocol: request['data']['sctpStreamParameters']['protocol'],
-                  label: request['data']['sctpStreamParameters']['label'],
+                  protocol: request['data']['protocol'],
+                  label: request['data']['label'],
                   priority: Priority.values.firstWhere(
                           (p) => request['data']['sctpStreamParameters']['priority'] == p.name,
                       orElse: () => Priority.Medium
@@ -527,6 +527,7 @@ class RoomClientRepository {
                   ...request['data']['appData'],
                   'peerId': request['data']['peerId'],
                 },
+                accept: accept,
                 peerId: request['data']['peerId'],
               );
             } catch (e, st) {

@@ -68,10 +68,8 @@ class MyApp extends StatelessWidget {
                     return RoomClientRepository(
                       peerId: id,
                       displayName: displayName,
-                      url: url.isEmpty
-                          ? 'wss://${uri.host}:4443'
-                          : 'wss://v3demo.mediasoup.org:4443',
-                      roomId: uri.queryParameters['roomId'] ??
+                      url: "wss://${uri.host}:4443",
+                      roomId: "aoyjvhwu" ?? uri.queryParameters['roomId'] ??
                           uri.queryParameters['roomid'] ??
                           randomAlpha(8).toLowerCase(),
                       peersBloc: context.read<PeersBloc>(),
