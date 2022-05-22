@@ -24,8 +24,8 @@ dependencies:
   flutter:
     sdk: flutter
   mediasoup_client_flutter: #^0.8.1
-    path: ../mediasoup-client-flutter
-  protoo_client: ^0.3.1
+    path: ../
+  protoo_client: ^0.3.3
   random_words: ^1.0.2
   random_string: ^2.3.1
   flutter_webrtc: ^0.8.5
