@@ -87,7 +87,7 @@ class RoomClientRepository {
 
   Future<void> disableWebcam() async {
     meBloc.add(MeSetWebcamInProgress(progress: true));
-    String webcamId = producersBloc.state.webcam!.id;
+    String webcamId = producersBloc.state.webcam?.id ?? '';
 
     producersBloc.add(ProducerRemove(source: 'webcam'));
 
